@@ -12,7 +12,6 @@ Gramps registration file
 # Mark birthday issues with tags
 #
 #------------------------------------------------------------------------
-print("Starting to register markbirthnameissues")
 
 register(TOOL, 
 id    = 'markbirthnameissues',
