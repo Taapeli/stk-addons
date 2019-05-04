@@ -13,7 +13,7 @@ Gramps registration file
 #
 #------------------------------------------------------------------------
 
-register(TOOL, 
+register(TOOL,  
 id    = 'markbirthnameissues',
 name  = _("Mark birthname issues with notes"),
 description =  _("Mark birthname issues with todo notes"),

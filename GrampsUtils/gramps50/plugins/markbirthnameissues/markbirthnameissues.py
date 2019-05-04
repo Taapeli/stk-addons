@@ -145,7 +145,7 @@ class MarkBirthnameIssues(tool.BatchTool):
                         elif mnames and self.compareNymes(mnames, bpatronyme):
                             continue
                         else:
-                            self.addNoteToPerson("--BIRTHNAME: Patronyme/matronyme %s does not agree with parents first name " %  bpatronyme)
+                            self.addNoteToPerson("--BIRTHNAME: Patronyme/matronyme %s does not agree with parents first name " %  bpatronyme, person)
                      
                     if bsurname:
                         if fnames and self.compareSurnames(fnames, bsurname):
