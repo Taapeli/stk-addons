@@ -14,7 +14,9 @@ Created on 5.4.2017
 # Standard Python modules
 #
 #-------------------------------------------------------------------------
-# 
+#
+import unicodedata 
+
 import logging
 LOG = logging.getLogger()
 LOG.setLevel(logging.WARN)
@@ -90,21 +92,34 @@ class MarkBirthnameIssues(tool.BatchTool):
         
                       
     def compareNymes(self, pnames, nyme):
+        # Normalize stings before compare because of accented characters
+        nnyme = unicodedata.normalize('NFKD', nyme).encode('ASCII','ignore')
+        # nnyme = unicodedata.normalize('NFC', nyme.decode('utf8'))
         for name in pnames:
-            # print("    " + name.first_name)
-            i = 0
-            for c in str(name.first_name):
-                if nyme[i:i+1] != c:
-                    break
-                # print("      " + c + "-" + nyme[i:i+1])       
-                i+=1
-            if i > 3:
-                return True   
+            nfname = unicodedata.normalize('NFKD', name.first_name).encode('ASCII','ignore')
+            # nfname = str(unicodedata.normalize('NFC', name.first_name.decode('utf8')))
+            # print("    Nymes:" + str(nnyme) +  " - " + str(nfname))
+            # Following algorithm is a crude preliminary one,  reference names should be used instead
+            for i in range(len(nfname)):
+                # print("          " + str(nfname[i]) + "-" + str(nnyme[i])) 
+                if nnyme[i] != nfname[i]:
+                    if i > 3:
+                        return True
+                    else:
+                        return False
+            # print("        -> starts with")        
+            return True   
         return False
      
     def compareSurnames(self, pnames, surname):
+        # Normalize stings before compare because of accented characters
+        nsurname = unicodedata.normalize('NFKD', surname).encode('ASCII','ignore')
+        # nsurname = str(unicodedata.normalize('NFC', surname.decode('utf8')))
         for name in pnames:
-            if surname == str(name.get_surname()):
+            npsurname = unicodedata.normalize('NFKD', str(name.get_surname())).encode('ASCII','ignore')
+            # print("    " + str(nsurname) +  " - " + str(npsurname))
+            if nsurname == npsurname:
+            # if nsurname == str(unicodedata.normalize('NFC', name.get_surname.decode('utf8'))):
                 return True
         return False
     
@@ -122,7 +137,7 @@ class MarkBirthnameIssues(tool.BatchTool):
                 # print("Birth patronyme " + bpatronyme)
                 if bsurname == '':
                     if pname.suffix == "": 
-                        print("T    Both birth surname and patronyme/matronyme empty")
+                        # print("T    Both birth surname and patronyme/matronyme empty")
                         self.addNoteToPerson('--BIRTHNAME: Both birth surname and patronyme/matronyme empty.', person)
                         return
 
@@ -167,8 +182,8 @@ class MarkBirthnameIssues(tool.BatchTool):
                 step()
                 self.checkForIssues(self.db.get_person_from_handle(phandle))  
   
-        self.db.enable_signals()
-        self.db.request_rebuild() 
+#        self.db.enable_signals()
+#        self.db.request_rebuild() 
                
     
 #------------------------------------------------------------------------
