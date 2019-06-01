@@ -22,7 +22,7 @@
 #
 
 """
-Package providing filter rules for GRAMPS.
+Package providing filter rules for Gramps.
 """
 
 from ._disconnected import Disconnected
@@ -109,6 +109,7 @@ from ._matchidof import MatchIdOf
 from ._regexpidof import RegExpIdOf
 from ._changedsince import ChangedSince
 from ._isrelatedwith import IsRelatedWith
+from ._hassoundexname import HasSoundexName
 from ._hasbirthnameproblem import HasBirthnameProblem
 from ._haseventrole import HasEventRole
 
@@ -136,7 +137,7 @@ editor_rule_list = [
     HasRelationship,
     HasDeath,
     HasBirth,
-    HasCitation, 
+    HasCitation,
     HasEvent,
     HasFamilyEvent,
     HasAttribute,
@@ -188,10 +189,12 @@ editor_rule_list = [
     HasNote,
     HasNoteRegexp,
     RegExpIdOf,
+    RegExpName,
     Disconnected,
     ChangedSince,
     IsRelatedWith,
+    HasSoundexName,
     HasBirthnameProblem,
-    HasEventRole,
+    HasEventRole,    
 ]
 

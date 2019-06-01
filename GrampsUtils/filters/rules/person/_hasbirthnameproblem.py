@@ -58,12 +58,19 @@ class HasBirthnameProblem(Rule):
 
     def apply(self,db,person):
 
-        def compareSurnames(self, parentHandle, surname):
+        def compareSurnames(self, parentHandle, surname, patronyme):
             parent = db.get_person_from_handle(parentHandle)
             pnames = [parent.get_primary_name()] + parent.get_alternate_names()
             for name in pnames:
                 if surname == str(name.get_surname()):
                     return True
+                i = 0
+                for c in str(name.first_name):
+                    if patronyme[i:i+1] == c:
+                        i+=1
+                    break
+                if i > 3:
+                    return True    
             return False
 
         def extractChristianName(self, patronyme):
@@ -75,9 +82,11 @@ class HasBirthnameProblem(Rule):
             if name.type == NameType.BIRTH:
                 bsurname = str(name.get_surname())
                 bchristname = str(name.first_name)
+                bpatronyme = str(name.suffix)
 #                LOG.debug("Birth surname " + bsurname) 
                 if bsurname == '':
                     LOG.debug("F    Birth surname empty, patronyme/matronyme assumed") 
+                    
                     return False    # Empty surname, patronyme/matronyme assumed
                 else:   
                     pFamilies = person.get_parent_family_handle_list()
@@ -88,12 +97,12 @@ class HasBirthnameProblem(Rule):
                         pFamily = db.get_family_from_handle(phandle)
                         fhandle = pFamily.get_father_handle()
                         if fhandle:
-                            if compareSurnames(self, fhandle, bsurname):
+                            if compareSurnames(self, fhandle, bsurname, bpatronyme):
                                 LOG.debug("F    Surname %s same as fathers surname, no problem " % bsurname) 
                                 return False    # Surname sane as fathers surname, no problem
                         mhandle = pFamily.get_mother_handle()                            
                         if mhandle:
-                            if compareSurnames(self, mhandle, bsurname):
+                            if compareSurnames(self, mhandle, bsurname, bpatronyme):
                                 LOG.debug("F    Surname %s same as mothers surname, no problem " % bsurname) 
                                 return False    # Surname same as mothers surname, no problem
                     LOG.debug("T    No matching surname %s found " % bsurname)         

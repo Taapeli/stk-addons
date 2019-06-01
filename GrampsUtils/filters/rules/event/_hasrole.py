@@ -43,31 +43,35 @@ LOG.setLevel(logging.INFO)
 # Gramps modules
 #
 #-------------------------------------------------------------------------
+from ....lib.event import Event
 from ....lib.eventroletype import EventRoleType
+from ....lib.person import Person
 from .. import Rule
+
 
 #-------------------------------------------------------------------------
 #
 # HasEvent
 #
 #-------------------------------------------------------------------------
-class HasEventRole(Rule):
-    """Rule that checks for a person having a personal event with a specified role"""
+class HasRole(Rule):
+    """Rule that checks for events having persons referring to them with a specified role"""
 
     labels      = [ _('Role:'), ]
-    name        =  _('Persons having events with a specified role')
-    description = _("Matches persons having events with a specified role ")
+    name        =  _('Events having persons referring to them with a specified role')
+    description = _('Matches events having persons referring to them with a specified role')
 
-    def apply(self, dbase, person):
+    def apply(self, db, event):
+        print(event.serialize())
         try:
-            for event_ref in person.event_ref_list:
-#                print(event_ref.serialize())
-                roletype = event_ref.get_role()
-#                print(roletype.serialize())
-#                print(event_ref.__role.serialize())
-                if roletype.serialize()[1] == self.list[0] :
-                    # Only match unknown
+            referrers = db.find_backlink_handles(event.handle, include_classes=None)
+            print(referrers.serialize())
+            for referrer in referrers:
+                print(referrer.serialize())
+                if referrer[0] == 'Person':
+                    person = db.get_person_from_handle(referrer[1])
+                    print(person.to_struct())
                     return True
-            return False
-        except: 
-            return False
+        except ex:
+            print('Virhe ' + ex.serialize())
+        return False    
