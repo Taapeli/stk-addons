@@ -105,7 +105,7 @@ class SetPlaceProperties(Gramplet):
         self.tagcombo.get_child().set_text("")
         self.typecombo.get_child().set_text("")
         self.clear_enclosing.set_active(False)
-        self.__clear_tags.set_active(False)
+        self.clear_tags.set_active(False)
     
     def __create_gui(self):
         vbox = Gtk.VBox(orientation=Gtk.Orientation.VERTICAL)
