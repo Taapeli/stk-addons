@@ -84,6 +84,7 @@ class SetPlaceProperties(Gramplet):
         self.gui.get_container_widget().remove(self.gui.textview)
         self.gui.get_container_widget().add_with_viewport(self.root)
         self.selected_handle = None
+        self.set_tooltip(_("Set properties for multiple places"))
 
     def db_changed(self):
         self.__clear(None)
