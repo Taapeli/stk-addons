@@ -44,7 +44,8 @@
 #
 # You can also set the type of the selected place or assign any tag if needed.
 # The operations can be combined so that e.g. the place type and enclosing place can be set 
-# at the same time. 
+# at the same time. Type and tag can be selected from pre-existing ones or you can type
+# a new name if needed.
 #
 # Any existing tags can also be first removed if the "Clear tags" checkbox is marked. Otherwise
 # the new tag is added the set of the tags for the places. 
@@ -84,6 +85,9 @@ class SetPlaceProperties(Gramplet):
         self.gui.get_container_widget().add_with_viewport(self.root)
         self.selected_handle = None
 
+    def db_changed(self):
+        self.__clear(None)
+        
     def __typenames(self):
         for pt in self.dbstate.db.get_place_types():
             yield pt
@@ -180,7 +184,11 @@ class SetPlaceProperties(Gramplet):
 
     def __select(self,obj):
         self.selected_handle = self.uistate.get_active('Place')
-        if not self.selected_handle: return
+        if not self.selected_handle: 
+            OkDialog(_("Please select a place that will be set as an enclosing place"),
+                     "",
+                     parent=self.uistate.window)
+            return
         selected_parent = self.dbstate.db.get_place_from_handle(self.selected_handle)
         self.selected_name = selected_parent.get_name().value
         self.enclosing_place.set_text(self.selected_name)
