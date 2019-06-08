@@ -29,7 +29,7 @@ Gramps registration file
 #------------------------------------------------------------------------
 
 register(IMPORT, 
-    id    = 'Import Places',
+    id    = 'Import Place Hierarchies',
     name  = _("Reference Place hierarchies from a pcsv file"),
     description =  _("Import Reference Place hierarchies from a pcsv file"),
     version = '0.1',
