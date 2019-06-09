@@ -77,7 +77,14 @@ from gramps.gen.const import GRAMPS_LOCALE as glocale
 
 from gramps.gui.dialog import OkDialog
 
-_ = glocale.translation.gettext
+#_ = glocale.translation.gettext
+
+from gramps.gen.const import GRAMPS_LOCALE as glocale
+try:
+    _trans = glocale.get_addon_translator(__file__)
+except ValueError:
+    _trans = glocale.translation
+_ = _trans.gettext
 
 class SetPlaceProperties(Gramplet):
 

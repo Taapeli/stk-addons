@@ -1,0 +1,82 @@
+# Finnish translations for PROJECT.
+# Copyright (C) 2019 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2019-06-09 19:46+0300\n"
+"PO-Revision-Date: 2019-06-09 19:44+0300\n"
+"Last-Translator: \n"
+"Language: fi\n"
+"Language-Team: fi <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: SetPlaceProperties.gpr.py:3 SetPlaceProperties.gpr.py:14
+msgid "SetPlaceProperties"
+msgstr "Aseta paikkojen ominaisuuksia"
+
+#: SetPlaceProperties.gpr.py:4
+msgid "Gramplet to set properties for multiple places"
+msgstr "Gramplet, jolla voi asettaa ominaisuuksia useille paikoille kerrallaan"
+
+#: SetPlaceProperties.py:96
+msgid "Set properties for multiple places"
+msgstr "Aseta usean paikan ominaisuuksia"
+
+#: SetPlaceProperties.py:128
+msgid ""
+"This gramplet allows setting properties for multiple places at the same "
+"time"
+msgstr "Tällä Grampletilla voi asettaa ominaisuuksia monelle paikalle kerrallaan"
+
+#: SetPlaceProperties.py:134
+msgid "Place type:"
+msgstr "Paikan tyyppi:"
+
+#: SetPlaceProperties.py:140
+msgid "Tag:"
+msgstr "Tagi:"
+
+#: SetPlaceProperties.py:146
+msgid "New enclosing place"
+msgstr "Uusi ympäröivä paikka:"
+
+#: SetPlaceProperties.py:151
+msgid "None"
+msgstr "Ei mitään"
+
+#: SetPlaceProperties.py:165
+msgid "Set enclosing place"
+msgstr "Aseta ympäröivä paikka"
+
+#: SetPlaceProperties.py:169
+msgid "Clear original enclosing places"
+msgstr "Poista aiemmat ympäröivät paikat"
+
+#: SetPlaceProperties.py:172
+msgid "Clear tags"
+msgstr "Poista aiemmat tagit"
+
+#: SetPlaceProperties.py:175
+msgid "Clear selections"
+msgstr "Poista valinnat"
+
+#: SetPlaceProperties.py:179
+msgid "Apply to selected places"
+msgstr "Suorita valituille paikoilla"
+
+#: SetPlaceProperties.py:198
+msgid "Please select a place that will be set as an enclosing place"
+msgstr "Valitse uusi ympäröivä paikka"
+
+#: SetPlaceProperties.py:207
+msgid "Setting place properties"
+msgstr "Paikkojen ominaisuuksien asettaminen"
+
