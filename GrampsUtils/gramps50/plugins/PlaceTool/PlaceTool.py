@@ -92,11 +92,15 @@ from gramps.gui.plug import tool
 from gramps.gui.utils import ProgressMeter
 from gramps.gen.db import DbTxn
 from gramps.gen.lib import Place, PlaceRef, PlaceName, PlaceType, Note, Tag
-from gramps.gen.const import GRAMPS_LOCALE as glocale
 
 from gramps.gui.dialog import OkDialog
 
-_ = glocale.translation.gettext
+from gramps.gen.const import GRAMPS_LOCALE as glocale
+try:
+    _trans = glocale.get_addon_translator(__file__)
+except ValueError:
+    _trans = glocale.translation
+_ = _trans.gettext
 
 class PlaceTool(Gramplet):
 
@@ -127,7 +131,7 @@ class PlaceTool(Gramplet):
         self.selected_handle = None        
         selected_parent = None
         self.selected_name = ""
-        self.enclosing_place.set_text("None")
+        self.enclosing_place.set_text(_("None"))
         self.tagcombo.get_child().set_text("")
         self.typecombo.get_child().set_text("")
         self.clear_enclosing.set_active(False)
