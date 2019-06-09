@@ -353,7 +353,7 @@ class PlaceTool(Gramplet):
                 place_name.set_value(name)
                 new_place.set_name(place_name)
                 if parent_handle is None:
-                    new_place.set_type(PlaceType.COUNTRY)
+                    #new_place.set_type(PlaceType.COUNTRY)
                     top_place = new_place
                 if parent_handle is not None:
                     placeref = PlaceRef()
