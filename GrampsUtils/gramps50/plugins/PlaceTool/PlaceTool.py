@@ -18,9 +18,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 #
-# SetPlaceProperties
-# ------------------
+# PlaceTool
+# ---------
 # Author: kari.kujansuu@gmail.com
+# 9 Jun 2019
 #
 # Gramplet to change properties of multiple places at the same time.
 # The properties that can be changed are:
@@ -28,6 +29,8 @@
 # - place type
 # - tag
 # - enclosing place
+#
+# The gramplet can also generate a place hierarchy from place names or titles.
 #
 # For the enclosing place first select the place that should enclose the other places 
 # and click the "Set enclosing place" button. The selected place will be displayed.
@@ -53,9 +56,25 @@
 # If the enclosing place, type or tag is not specified, then the corresponding
 # setting is not changed.
 #
+# If a place name contains comma separated names then the gramplet can change this
+# to a place hierarchy. For example if the name is of the form "place1, place2, place3"
+# then two new places, place2 and place3 are created, the name of the original place
+# is changed to place1 and the places are put in the hierarchy "place1 < place2 < place3".
+# Duplicate place names at the same level are automatically merged. The original names
+# can also be separate by spaces instead of commas - but then you must be careful that
+# the names do not contain spaces.
+#
+# The hierarchy can also be generated in reverse, e.g. the result can also be 
+# "place3 < place2 < place1" if the corresponding checkbox is marked.
+#
+# The place type and tag setting affects only the original place.
+#
+# If a new enclosing place is also specified then the new hierarchy is placed under the
+# enclosing place.
+#
 # The "Clear selections" button will clear the form.
 #
-# The changes are done under a transaction and the changes can be undone 
+# The changes are done under a transaction and they can be undone 
 # from the Gramps menu "Edit > Undo Setting place properties". 
 #
 # The "Filter" gramplet can be used to search for the places that need changes. This gramplet
@@ -243,13 +262,15 @@ class PlaceTool(Gramplet):
                     self.__clear_enclosing_place(place,handle)
                 if self.clear_tags.get_active():
                     self.__clear_tags(place,handle)
-                self.__set_enclosing_place(place,handle)
                 if typename: self.__set_type(place,handle,typename)
                 if tag: self.__set_tag(place,handle,tag)
+                top = place
                 if self.generate_hierarchy.get_active():
-                    self.__generate_hierarchy(place,handle)
+                    top = self.__generate_hierarchy(place,handle) or place
+                self.__set_enclosing_place(top)
 
                 self.dbstate.db.commit_place(place,self.trans)
+                if place != top: self.dbstate.db.commit_place(top,self.trans)
     
     def __set_tag(self, place, handle, tag):
         place.add_tag(tag.handle)
@@ -272,9 +293,9 @@ class PlaceTool(Gramplet):
             if self.__encloses(handle1, placeref.ref): return True
         return False
     
-    def __set_enclosing_place(self,place,handle):
+    def __set_enclosing_place(self,place):
         if not self.selected_handle: return
-        if self.__encloses(handle, self.selected_handle):  # place should not include itself
+        if self.__encloses(place.get_handle(), self.selected_handle):  # place should not include itself
             print("Can't set",place.get_name().value,"inside",self.selected_name) 
             return
         #place = self.dbstate.db.get_place_from_handle(handle)
@@ -301,9 +322,14 @@ class PlaceTool(Gramplet):
     def __generate_hierarchy(self,place, handle):
 
         original_name = place.get_title()
-        #original_name = place.get_name().get_value()
+        if original_name == "": 
+            original_name = place.get_name().get_value()
         separator = ','
-        if ',' not in original_name: return
+        if self.spaces.get_active():
+            separator = None
+            if ' ' not in original_name: return
+        else:
+            if ',' not in original_name: return
 
         names = [name.strip()
                  for name in original_name.split(separator)
@@ -315,6 +341,7 @@ class PlaceTool(Gramplet):
         place.set_title('')
 
         parent_handle = None
+        top_place = place
         for name, handle in self.find_hierarchy(names)[:-1]:
             if handle is None:
                 new_place = Place()
@@ -323,6 +350,7 @@ class PlaceTool(Gramplet):
                 new_place.set_name(place_name)
                 if parent_handle is None:
                     new_place.set_type(PlaceType.COUNTRY)
+                    top_place = new_place
                 if parent_handle is not None:
                     placeref = PlaceRef()
                     placeref.ref = parent_handle
@@ -335,7 +363,8 @@ class PlaceTool(Gramplet):
             placeref = PlaceRef()
             placeref.ref = parent_handle
             place.add_placeref(placeref)
-
+        return top_place
+    
     def find_hierarchy(self, names):
         out = []
         handle = None
