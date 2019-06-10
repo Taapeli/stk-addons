@@ -59,6 +59,3 @@ from the Gramps menu "Edit > Undo Setting place properties".
 
 The "Filter" gramplet can be used to search for the places that need changes. This gramplet
 does not have direct support for filters.
-
-This gramplet can only be added on the Places view.
- 
