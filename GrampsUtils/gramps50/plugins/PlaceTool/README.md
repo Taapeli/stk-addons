@@ -1,7 +1,7 @@
 PlaceTool
 ---------
 Author: kari.kujansuu@gmail.com
-9 Jun 2019
+(9 Jun 2019)
 
 Gramplet to change properties of multiple places at the same time.
 The properties that can be changed are:
@@ -58,3 +58,5 @@ All changes are done under a transaction and they can be undone from the Gramps 
 "Edit > Undo Setting place properties". 
 
 This gramplet does not have direct support for filters. The "Filter" gramplet can be used to search for the places that need changes. 
+
+This gramplet can only be added on the Places view and it requires Gramps 5.x.
