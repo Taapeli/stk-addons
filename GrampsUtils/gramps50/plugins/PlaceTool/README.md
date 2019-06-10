@@ -25,23 +25,23 @@ This can e.g. be used to "move" the places under another place.
 Attempts to set a duplicate enclosing place or a loop (so that a place contains itself) 
 are quietly bypassed.
 
-You can also set the type of the selected place or assign any tag if needed.
+You can also set the type of the selected places or assign any tag if needed.
 The operations can be combined so that e.g. the place type and enclosing place can be set 
 at the same time. Type and tag can be selected from pre-existing ones or you can type
 a new name if needed.
 
 Any existing tags can also be first removed if the "Clear tags" checkbox is marked. Otherwise
-the new tag is added the set of the tags for the places. 
+the new tag is added to the set of the tags for the places. 
 
 If the enclosing place, type or tag is not specified, then the corresponding
 setting is not changed.
 
 If a place name contains comma separated names then the gramplet can change this
 to a place hierarchy. For example if the name is of the form "place1, place2, place3"
-then two new places, place2 and place3 are created, the name of the original place
-is changed to place1 and the places are put in the hierarchy "place1 < place2 < place3".
+then two new places, place2 and place3 (with type "Unknown") are created, the name of the original place is changed to place1 and the places are put in the hierarchy "place1 < place2 < place3".
+
 Duplicate place names at the same level are automatically merged. The original names
-can also be separate by spaces instead of commas - but then you must be careful that
+can also be separated by spaces instead of commas - but then you must be careful that
 the names do not contain spaces.
 
 The hierarchy can also be generated in reverse, e.g. the result can also be 
@@ -54,8 +54,7 @@ enclosing place.
 
 The "Clear selections" button will clear the form.
 
-The changes are done under a transaction and they can be undone 
-from the Gramps menu "Edit > Undo Setting place properties". 
+All changes are done under a transaction and they can be undone from the Gramps menu 
+"Edit > Undo Setting place properties". 
 
-The "Filter" gramplet can be used to search for the places that need changes. This gramplet
-does not have direct support for filters.
+This gramplet does not have direct support for filters. The "Filter" gramplet can be used to search for the places that need changes. 
