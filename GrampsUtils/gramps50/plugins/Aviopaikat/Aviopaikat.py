@@ -17,17 +17,24 @@ _ = glocale.translation.gettext
 
 
 # regex helpers
+class P:
+    def __init__(self,name,pat):
+        self.name = name
+        self.pat = pat
+        self.pats = "(?P<{name}>{pat})".format(name=name,pat=pat)
+       
 def p(**kwargs):
-    ret = ""
+    assert len(kwargs) == 1
     for name,pat in kwargs.items():
-        ret += "(?P<{name}>{pat})".format(name=name,pat=pat)
-    return ret
+        return "(?P<{name}>{pat})".format(name=name,pat=pat)
+    raise Error
 
 def optional(pat):
     return "({pat})?".format(pat=pat)    
 
-def match(s,**kwargs):    
-    pat = p(**kwargs)
+def match(s,*args):    
+    pat = "".join(args)
+    print(s)
     print(pat)
     flags = re.VERBOSE
     r = re.fullmatch(pat,s,flags)
@@ -125,6 +132,7 @@ class Aviopaikat(Gramplet):
                     newplacehandle = self.dbstate.db.add_place(newplace, self.trans)
                     event.set_place_handle(newplacehandle)
 
+                event.set_description("marriage")
                 self.dbstate.db.commit_event(event,self.trans)
                 self.dbstate.db.commit_place(place,self.trans)
 
@@ -144,17 +152,23 @@ class Aviopaikat(Gramplet):
             wife_place = place3 + ", " + place1
         return place1, husb_place, wife_place
     
-    def __match2(self,place):
+    def __match2(self,place): # does not work in Python 3.5 or earlier 
         non_comma = r'[^,]+'
         optional_comma = r',?'
-        optional_space = r' ?'
+        optional_space = r'\s?'
         leftparen = r'\('
         rightparen = r'\)'
         non_slash = r'[^/]+'
         m = match(place,
-                  place1=non_comma,comma1=optional_comma,space=optional_space,
-                  par1=leftparen,husb_place=non_slash,slash="/",wife_place=non_slash,
-                  par2=rightparen)
+                  p(place1=non_comma),
+                  p(comma1=optional_comma),
+                  p(space=optional_space),
+                  p(par1=leftparen),
+                  p(husb_place=non_slash),
+                  p(slash="/"),
+                  p(wife_place=non_slash),
+                  p(par2=rightparen))
+        # does not work in Python 3.5 or earlier since the order of keyword args is not preserved
 #        r"([^,]+),? ?\(([^/]+)/([^/]+)\)"
         if not m: return False
         place2 = m.husb_place
@@ -167,4 +181,4 @@ class Aviopaikat(Gramplet):
             wife_place = m.place1
         else:
             wife_place = place3 + ", " + m.place1
-        return place1, husb_place, wife_place
+        return m.place1, husb_place, wife_place
