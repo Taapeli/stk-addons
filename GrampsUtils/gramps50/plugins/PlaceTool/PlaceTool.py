@@ -239,22 +239,25 @@ class PlaceTool(Gramplet):
                 ptype = None
             selected_handles = self.uistate.viewmanager.active_page.selected_handles()
             num_places = len(selected_handles)
-            x = self.clear_enclosing.get_active()
+            for handle in selected_handles:
+                place = self.dbstate.db.get_place_from_handle(handle)
+                if self.clear_enclosing.get_active():
+                    self.__clear_enclosing_place(place,handle)
+                self.__set_enclosing_place(place)
+                self.dbstate.db.commit_place(place,self.trans)
             for handle in selected_handles:
                 place = self.dbstate.db.get_place_from_handle(handle)
                 pname = place.get_name().value
-                original_enclosing_places = place.get_placeref_list().copy()
-                if self.clear_enclosing.get_active():
-                    self.__clear_enclosing_place(place,handle)
                 if self.clear_tags.get_active():
                     self.__clear_tags(place,handle)
                 if typename: self.__set_type(place,handle,typename)
                 if tag: self.__set_tag(place,handle,tag)
+
+                original_enclosing_places = place.get_placeref_list().copy()
                 top = place
                 if self.generate_hierarchy.get_active():
-                    top = self.__generate_hierarchy(place,handle) or place
+                    top = self.__generate_hierarchy(place,handle,original_enclosing_places) or place
                 top.set_placeref_list(original_enclosing_places)
-                self.__set_enclosing_place(top)
 
                 if self.replace_text.get_active():
                     old_text = self.old_text.get_text()
@@ -317,8 +320,9 @@ class PlaceTool(Gramplet):
             self.dbstate.db.commit_tag(tag, self.trans)
         return tag  
     
-    def __generate_hierarchy(self,place, handle):
-
+    def __generate_hierarchy(self,place,handle,original_enclosing_places):
+        # Generates the hierarchy.
+        # Returns the place at the top of the hierarchy or None if no hierarchy was generated
         original_name = place.get_title()
         if original_name == "": 
             original_name = place.get_name().get_value()
@@ -340,14 +344,13 @@ class PlaceTool(Gramplet):
 
         parent_handle = None
         top_place = place
-        for name, handle in self.find_hierarchy(names)[:-1]:
+        for name, handle, new_place in self.find_hierarchy(names,original_enclosing_places)[:-1]:
             if handle is None:
                 new_place = Place()
                 place_name = PlaceName()
                 place_name.set_value(name)
                 new_place.set_name(place_name)
                 if parent_handle is None:
-                    #new_place.set_type(PlaceType.COUNTRY)
                     top_place = new_place
                 if parent_handle is not None:
                     placeref = PlaceRef()
@@ -355,6 +358,8 @@ class PlaceTool(Gramplet):
                     new_place.add_placeref(placeref)
                 parent_handle = self.dbstate.db.add_place(new_place, self.trans)
             else:
+                if parent_handle is None:
+                    top_place = new_place
                 parent_handle = handle
 
         if parent_handle is not None:
@@ -363,33 +368,40 @@ class PlaceTool(Gramplet):
             place.set_placeref_list([placeref]) # this removes any previous parent
         return top_place
     
-    def find_hierarchy(self, names):
+    def find_hierarchy(self, names,original_enclosing_places):
         out = []
         handle = None
-        level = self.get_top_level()
+        enclosing_handles = [r.ref for r in original_enclosing_places]
+        level = self.get_top_level(enclosing_handles)
         names.reverse()  # !
         for name in names:
             if name not in level:
-                out.append((name, None))
+                out.append((name, None, None))
                 level = {}
             else:
-                handle = level[name]
+                handle,place = level[name]
                 level = self.get_level(handle)
-                out.append((name, handle))
+                out.append((name, handle, place))
         return out
 
     def get_level(self, handle):
         level = {}
         for obj, handle in self.dbstate.db.find_backlink_handles(handle, ['Place']):
             place = self.dbstate.db.get_place_from_handle(handle)
-            level[place.get_name().get_value()] = handle
+            level[place.get_name().get_value()] = (handle,place)
         return level
 
-    def get_top_level(self):
+    def get_top_level(self,enclosing_handles):
         top_level = {}
-        for handle in self.dbstate.db.find_place_child_handles(''):
-            place = self.dbstate.db.get_place_from_handle(handle)
-            top_level[place.get_name().get_value()] = handle
+        if enclosing_handles == []:
+            for handle in self.dbstate.db.find_place_child_handles(''):
+                place = self.dbstate.db.get_place_from_handle(handle)
+                top_level[place.get_name().get_value()] = (handle,place)
+        else:
+            for enclosing_handle in enclosing_handles:
+                for obj, handle in self.dbstate.db.find_backlink_handles(enclosing_handle, ['Place']):
+                    place = self.dbstate.db.get_place_from_handle(handle)
+                    top_level[place.get_name().get_value()] = (handle,place)
         return top_level
 
 
