@@ -57,8 +57,7 @@ The hierarchy can also be generated in reverse, e.g. the result can also be
 
 The place type and tag setting affects only the original place.
 
-If a new enclosing place is also specified then the new hierarchy is placed under the
-enclosing place.
+If the original place is under another place or a new enclosing place is specified then the new hierarchy is placed under the enclosing place.
 
 **Editing place names**
 
