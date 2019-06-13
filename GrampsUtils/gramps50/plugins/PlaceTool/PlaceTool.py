@@ -23,67 +23,11 @@
 # Author: kari.kujansuu@gmail.com
 # 9 Jun 2019
 #
-# Gramplet to change properties of multiple places at the same time.
-# The properties that can be changed are:
-#
-# - place type
-# - tag
-# - enclosing place
-#
-# The gramplet can also generate a place hierarchy from place names or titles.
-#
-# For the enclosing place first select the place that should enclose the other places 
-# and click the "Set enclosing place" button. The selected place will be displayed.
-# Then select any number of places that should  be enclosed by the first one
-# and click the "Apply to selected places" button. 
-#
-# A place might already have an enclosing place. In that case the new place will be added
-# and the place will end up being enclosed by multiple places. This is quite OK but
-# you can also remove the previous enclosing places by checking the box "Clear original enclosing places".
-# This can e.g. be used to "move" the places under another place.
-#
-# Attempts to set a duplicate enclosing place or a loop (so that a place contains itself) 
-# are quietly bypassed.
-#
-# You can also set the type of the selected place or assign any tag if needed.
-# The operations can be combined so that e.g. the place type and enclosing place can be set 
-# at the same time. Type and tag can be selected from pre-existing ones or you can type
-# a new name if needed.
-#
-# Any existing tags can also be first removed if the "Clear tags" checkbox is marked. Otherwise
-# the new tag is added the set of the tags for the places. 
-#
-# If the enclosing place, type or tag is not specified, then the corresponding
-# setting is not changed.
-#
-# If a place name contains comma separated names then the gramplet can change this
-# to a place hierarchy. For example if the name is of the form "place1, place2, place3"
-# then two new places, place2 and place3 are created, the name of the original place
-# is changed to place1 and the places are put in the hierarchy "place1 < place2 < place3".
-# Duplicate place names at the same level are automatically merged. The original names
-# can also be separate by spaces instead of commas - but then you must be careful that
-# the names do not contain spaces.
-#
-# The hierarchy can also be generated in reverse, e.g. the result can also be 
-# "place3 < place2 < place1" if the corresponding checkbox is marked.
-#
-# The place type and tag setting affects only the original place.
-#
-# If a new enclosing place is also specified then the new hierarchy is placed under the
-# enclosing place.
-#
-# The "Clear selections" button will clear the form.
-#
-# The changes are done under a transaction and they can be undone 
-# from the Gramps menu "Edit > Undo Setting place properties". 
-#
-# The "Filter" gramplet can be used to search for the places that need changes. This gramplet
-# does not have direct support for filters.
-#
-# This gramplet can only be added on the Places view.
+# Gramplet to change properties of multiple places at the same time. See README.
  
 import json
 import pprint
+import re
 
 from gi.repository import Gtk, Gdk, GObject
 
@@ -142,6 +86,8 @@ class PlaceTool(Gramplet):
     
 
     
+    
+    
     def __create_gui(self):
         vbox = Gtk.VBox(orientation=Gtk.Orientation.VERTICAL)
         vbox.set_spacing(4)
@@ -185,7 +131,7 @@ class PlaceTool(Gramplet):
 
         but_set_enclosing = Gtk.Button(label=_('Set enclosing place'))
         but_set_enclosing.connect("clicked", self.__select)
-        vbox.pack_start(but_set_enclosing, False, True, 20)
+        vbox.pack_start(but_set_enclosing, False, True, 10)
 
         self.clear_enclosing = Gtk.CheckButton(_("Clear original enclosing places"))
         vbox.pack_start(self.clear_enclosing, False, True, 0)
@@ -197,7 +143,8 @@ class PlaceTool(Gramplet):
         self.generate_hierarchy.connect("clicked", self.__select_generate_hierarchy)
         vbox.pack_start(self.generate_hierarchy, False, True, 0)
 
-        butbox1 = Gtk.VButtonBox()
+        butbox1 = Gtk.VBox()
+        butbox1.set_margin_left(20)
         self.spaces = Gtk.CheckButton(_("use spaces as separator"))
         self.spaces.set_sensitive(False)
         butbox1.pack_start(self.spaces, False, True, 0)
@@ -208,9 +155,39 @@ class PlaceTool(Gramplet):
 
         vbox.pack_start(butbox1, False, True, 0)
 
+        self.replace_text = Gtk.CheckButton(_("Replace text"))
+        self.replace_text.connect("clicked", self.__select_replace_text)
+
+        self.use_regex = Gtk.CheckButton(_("Use regex"))
+        self.use_regex.set_sensitive(False)
+
+        replace_text_box = Gtk.HBox()
+        replace_text_box.pack_start(self.replace_text, False, True, 0)
+        replace_text_box.pack_start(self.use_regex, False, True, 0)
+        vbox.pack_start(replace_text_box, False, True, 0)
+
+
+        old_text_label = Gtk.Label()
+        old_text_label.set_markup("<b>{}</b>".format(_("Old text:")))
+        self.old_text = Gtk.Entry()
+        self.old_text.set_sensitive(False)
+
+        new_text_label = Gtk.Label()
+        new_text_label.set_markup("<b>{}</b>".format(_("New text:")))
+        self.new_text = Gtk.Entry()
+        self.new_text.set_sensitive(False)
+
+        replace_grid = Gtk.Grid(column_spacing=10)
+        replace_grid.set_margin_left(20)
+        replace_grid.attach(old_text_label,1,0,1,1)
+        replace_grid.attach(self.old_text,2,0,1,1)
+        replace_grid.attach(new_text_label,1,1,1,1)
+        replace_grid.attach(self.new_text,2,1,1,1)
+        vbox.pack_start(replace_grid, False, True, 0)
+        
         but_clear = Gtk.Button(label=_('Clear selections'))
         but_clear.connect("clicked", self.__clear)
-        vbox.pack_start(but_clear, False, True, 0)
+        vbox.pack_start(but_clear, False, True, 10)
 
         but_apply = Gtk.Button(label=_('Apply to selected places'))
         but_apply.connect("clicked", self.__apply)
@@ -244,6 +221,12 @@ class PlaceTool(Gramplet):
         self.spaces.set_sensitive(checked)
         self.reverse.set_sensitive(checked)
     
+    def __select_replace_text(self,obj):
+        checked = self.replace_text.get_active()
+        self.old_text.set_sensitive(checked)
+        self.new_text.set_sensitive(checked)
+        self.use_regex.set_sensitive(checked)
+
     def __apply(self,obj):
         with DbTxn(_("Setting place properties"), self.dbstate.db) as self.trans:
             tagname = self.tagcombo.get_child().get_text().strip()
@@ -273,6 +256,14 @@ class PlaceTool(Gramplet):
                     top = self.__generate_hierarchy(place,handle) or place
                 self.__set_enclosing_place(top)
 
+                if self.replace_text.get_active():
+                    old_text = self.old_text.get_text()
+                    new_text = self.new_text.get_text()
+                    if self.use_regex.get_active():
+                        new_pname = re.sub(old_text,new_text,pname)
+                    else:
+                        new_pname = pname.replace(old_text,new_text)
+                    place.get_name().set_value(new_pname)
                 self.dbstate.db.commit_place(place,self.trans)
                 if place != top: self.dbstate.db.commit_place(top,self.trans)
     
@@ -302,7 +293,6 @@ class PlaceTool(Gramplet):
         if self.__encloses(place.get_handle(), self.selected_handle):  # place should not include itself
             print("Can't set",place.get_name().value,"inside",self.selected_name) 
             return
-        #place = self.dbstate.db.get_place_from_handle(handle)
         pname = place.get_name().value
         if self.selected_handle in [r.ref for r in place.placeref_list]: 
             print(pname,"already enclosed by",self.selected_name)
@@ -372,7 +362,7 @@ class PlaceTool(Gramplet):
     def find_hierarchy(self, names):
         out = []
         handle = None
-        level = self.get_countries()
+        level = self.get_top_level()
         names.reverse()  # !
         for name in names:
             if name not in level:
@@ -391,13 +381,12 @@ class PlaceTool(Gramplet):
             level[place.get_name().get_value()] = handle
         return level
 
-    def get_countries(self):
-        countries = {}
+    def get_top_level(self):
+        top_level = {}
         for handle in self.dbstate.db.find_place_child_handles(''):
             place = self.dbstate.db.get_place_from_handle(handle)
-            if int(place.get_type()) != PlaceType.UNKNOWN:
-                countries[place.get_name().get_value()] = handle
-        return countries
+            top_level[place.get_name().get_value()] = handle
+        return top_level
 
 
     

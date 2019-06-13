@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-06-09 21:57+0300\n"
+"POT-Creation-Date: 2019-06-13 10:47+0300\n"
 "PO-Revision-Date: 2019-06-09 19:46+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: sv\n"
@@ -26,69 +26,85 @@ msgstr ""
 msgid "Gramplet to manipulate multiple places"
 msgstr ""
 
-#: PlaceTool.py:108
+#: PlaceTool.py:56
 msgid "Set properties for multiple places"
 msgstr ""
 
-#: PlaceTool.py:145
+#: PlaceTool.py:78 PlaceTool.py:118
+msgid "None"
+msgstr ""
+
+#: PlaceTool.py:95
 msgid ""
 "This gramplet allows setting properties for multiple places at the same "
 "time"
 msgstr ""
 
-#: PlaceTool.py:151
+#: PlaceTool.py:101
 msgid "Place type:"
 msgstr ""
 
-#: PlaceTool.py:157
+#: PlaceTool.py:107
 msgid "Tag:"
 msgstr ""
 
-#: PlaceTool.py:163
+#: PlaceTool.py:113
 msgid "New enclosing place"
 msgstr ""
 
-#: PlaceTool.py:168
-msgid "None"
-msgstr ""
-
-#: PlaceTool.py:182
+#: PlaceTool.py:132
 msgid "Set enclosing place"
 msgstr ""
 
-#: PlaceTool.py:186
+#: PlaceTool.py:136
 msgid "Clear original enclosing places"
 msgstr ""
 
-#: PlaceTool.py:189
+#: PlaceTool.py:139
 msgid "Clear tags"
 msgstr ""
 
-#: PlaceTool.py:192
+#: PlaceTool.py:142
 msgid "Generate hierarchy"
 msgstr ""
 
-#: PlaceTool.py:197
+#: PlaceTool.py:148
 msgid "use spaces as separator"
 msgstr ""
 
-#: PlaceTool.py:201
+#: PlaceTool.py:152
 msgid "reverse hierarchy"
 msgstr ""
 
-#: PlaceTool.py:207
+#: PlaceTool.py:158
+msgid "Replace text"
+msgstr ""
+
+#: PlaceTool.py:161
+msgid "Use regex"
+msgstr ""
+
+#: PlaceTool.py:171
+msgid "Old text:"
+msgstr ""
+
+#: PlaceTool.py:179
+msgid "New text:"
+msgstr ""
+
+#: PlaceTool.py:194
 msgid "Clear selections"
 msgstr ""
 
-#: PlaceTool.py:211
+#: PlaceTool.py:198
 msgid "Apply to selected places"
 msgstr ""
 
-#: PlaceTool.py:230
+#: PlaceTool.py:217
 msgid "Please select a place that will be set as an enclosing place"
 msgstr ""
 
-#: PlaceTool.py:244
+#: PlaceTool.py:237
 msgid "Setting place properties"
 msgstr ""
 
