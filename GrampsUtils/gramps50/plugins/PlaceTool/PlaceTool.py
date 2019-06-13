@@ -83,10 +83,7 @@ class PlaceTool(Gramplet):
         self.generate_hierarchy.set_active(False)
         self.spaces.set_active(False)
         self.reverse.set_active(False)
-    
-
-    
-    
+        self.replace_text.set_active(False)
     
     def __create_gui(self):
         vbox = Gtk.VBox(orientation=Gtk.Orientation.VERTICAL)
