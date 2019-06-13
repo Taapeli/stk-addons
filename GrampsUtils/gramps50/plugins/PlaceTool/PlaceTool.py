@@ -28,6 +28,7 @@
 import json
 import pprint
 import re
+import traceback
 
 from gi.repository import Gtk, Gdk, GObject
 
@@ -242,6 +243,7 @@ class PlaceTool(Gramplet):
             for handle in selected_handles:
                 place = self.dbstate.db.get_place_from_handle(handle)
                 pname = place.get_name().value
+                original_enclosing_places = place.get_placeref_list().copy()
                 if self.clear_enclosing.get_active():
                     self.__clear_enclosing_place(place,handle)
                 if self.clear_tags.get_active():
@@ -251,13 +253,18 @@ class PlaceTool(Gramplet):
                 top = place
                 if self.generate_hierarchy.get_active():
                     top = self.__generate_hierarchy(place,handle) or place
+                top.set_placeref_list(original_enclosing_places)
                 self.__set_enclosing_place(top)
 
                 if self.replace_text.get_active():
                     old_text = self.old_text.get_text()
                     new_text = self.new_text.get_text()
                     if self.use_regex.get_active():
-                        new_pname = re.sub(old_text,new_text,pname)
+                        try:
+                            new_pname = re.sub(old_text,new_text,pname)
+                        except Exception as e:
+                            traceback.print_exc()
+                            raise RuntimeError(_("Regex operation failed: {}").format(e))
                     else:
                         new_pname = pname.replace(old_text,new_text)
                     place.get_name().set_value(new_pname)
