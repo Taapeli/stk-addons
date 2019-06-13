@@ -89,6 +89,7 @@ class Aviopaikat(Gramplet):
         e.set_type(EventType.RESIDENCE)
         e.set_date_object(date_object)
         e.set_place_handle(placehandle)
+        e.set_description("marriage")
         eventhandle = self.dbstate.db.add_event(e, self.trans)
 
         eref = EventRef()
