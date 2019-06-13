@@ -10,7 +10,11 @@ The properties that can be changed are:
 - tag
 - enclosing place
 
+Place names can be edited by substituting substrings with new values.
+
 The gramplet can also generate a place hierarchy from place names or titles.
+
+** Setting enclosing place **
 
 For the enclosing place first select the place that should enclose the other places 
 and click the "Set enclosing place" button. The selected place will be displayed.
@@ -25,6 +29,8 @@ This can e.g. be used to "move" the places under another place.
 Attempts to set a duplicate enclosing place or a loop (so that a place contains itself) 
 are quietly bypassed.
 
+** Setting place type or tag **
+
 You can also set the type of the selected places or assign any tag if needed.
 The operations can be combined so that e.g. the place type and enclosing place can be set 
 at the same time. Type and tag can be selected from pre-existing ones or you can type
@@ -35,6 +41,8 @@ the new tag is added to the set of the tags for the places.
 
 If the enclosing place, type or tag is not specified, then the corresponding
 setting is not changed.
+
+** Generating a place hierarchy **
 
 If a place name contains comma separated names then the gramplet can change this
 to a place hierarchy. For example if the name is of the form "place1, place2, place3"
@@ -51,6 +59,12 @@ The place type and tag setting affects only the original place.
 
 If a new enclosing place is also specified then the new hierarchy is placed under the
 enclosing place.
+
+** Editing place names **
+
+The "Replace text" function allows substituting a specified text string in the place names with another. Regular expressions can also be used.
+
+** Notes **
 
 The "Clear selections" button will clear the form.
 
