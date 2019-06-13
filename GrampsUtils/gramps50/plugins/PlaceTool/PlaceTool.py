@@ -360,7 +360,7 @@ class PlaceTool(Gramplet):
         if parent_handle is not None:
             placeref = PlaceRef()
             placeref.ref = parent_handle
-            place.add_placeref(placeref)
+            place.set_placeref_list([placeref]) # this removes any previous parent
         return top_place
     
     def find_hierarchy(self, names):
