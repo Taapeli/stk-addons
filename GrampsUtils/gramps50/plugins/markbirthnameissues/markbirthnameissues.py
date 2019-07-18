@@ -22,6 +22,8 @@ import logging
 LOG = logging.getLogger()
 LOG.setLevel(logging.WARN)
 
+from name_normalizer import NameNormalizer
+
 #-------------------------------------------------------------------------
 #
 # GRAMPS modules
@@ -31,7 +33,7 @@ LOG.setLevel(logging.WARN)
 from gramps.gui.plug import tool
 from gramps.gen.db import DbTxn
 #from gramps.gui.utils import ProgressMeter
-from gramps.gen.lib import Person, Name, NameType, Note, NoteType 
+from gramps.gen.lib import Person, Name, NameType, Note, NoteType, Tag 
 from gramps.gen.const import GRAMPS_LOCALE as glocale
 _ = glocale.translation.gettext
 
@@ -42,6 +44,16 @@ _ = glocale.translation.gettext
 #-------------------------------------------------------------------------
 
 class MarkBirthnameIssues(tool.BatchTool):
+    
+    first_normalizer = NameNormalizer('first')
+    print('first_normalizer created')
+    last_normalizer = NameNormalizer('last_extended')
+    print('last_normalizer created')
+    patronyme_normalizer = NameNormalizer('patronym')
+    print('patronym_normalizer created')
+    cod_normalizer = NameNormalizer('cause_of_death')
+    print('cod_normalizer created')
+
 
     def __init__(self, dbstate, user, options_class, name, callback=None):
         self.user = user
@@ -55,6 +67,21 @@ class MarkBirthnameIssues(tool.BatchTool):
 #     description = _("Matches persons with no  birth surname or other than parent surname")
 #     category    = _('General tools')
 
+      
+    def checkTagExistence(self, otext):
+        with DbTxn(_("Read Tag"), self.db):
+            tag = self.db.get_tag_from_name(otext)
+        if tag != None: 
+                LOG.debug('Tag found by name, no duplicates: ' + otext + ' ' + tag.get_name())       
+        else:       
+            tag = Tag()                  
+            tag.set_name(otext)
+            tag.set_color("#EF2929")
+            with DbTxn(_("Add Tag"), self.db) as trans:
+                thandle = self.db.add_tag(tag, trans)
+                LOG.debug('Tag added: ' + tag.get_name() + ' ' + thandle)
+        return tag  
+  
     def addNewNote(self, notecontent):
         with DbTxn(_("Add New Note"), self.db) as ntrans:
             new_note = Note(notecontent)
@@ -71,10 +98,10 @@ class MarkBirthnameIssues(tool.BatchTool):
             aName.add_note(note_handle)
             self.db.commit_note(aName, trans)
  
-    def addNoteToPerson(self, notecontent, aPerson):
+    def addNoteToPerson(self, type, notecontent, aPerson):
         with DbTxn(_("Add Note To Object"), self.db) as trans:
             new_note = Note(notecontent)
-            new_note.set_type(NoteType.RESEARCH)
+            new_note.set_type(type)
             note_handle = self.db.add_note(new_note, trans)
             aPerson.add_note(note_handle)
             self.db.commit_person(aPerson, trans)
@@ -120,20 +147,21 @@ class MarkBirthnameIssues(tool.BatchTool):
     def compareNymes(self, pnames, nyme):
         clang = '??'
         fname = ''
-        if   nyme.endswith(('poika', 'tytär')): clang = 'fi'
-        elif nyme.endswith(('son', 'dotter', 'dr.')):  clang = 'se'
-        # print(f"{lang}  {nyme} -- {pnames}")
-    # Normalize stings before compare because of accented characters
-        nnyme = unicodedata.normalize('NFKD', nyme).encode('ASCII','ignore')
-        # nnyme = unicodedata.normalize('NFC', nyme.decode('utf8'))
+        pnyme = self.patronyme_normalizer.normalize(nyme)
+        if   nyme.endswith(('poika', 'tytär', 'tr')): clang = 'fi'
+        elif nyme.endswith(('son', 'dotter', 'dr.')): clang = 'se'
         for name in pnames:
-            fname = name.first_name.split()
-            nfname = unicodedata.normalize('NFKD', self.genetivize(fname[0], clang)).encode('ASCII','ignore')
+            fname = self.genetivize(name.first_name.split()[0], clang)
+            if   nyme.endswith(('poika')): fname = fname + 'poika'
+            elif nyme.endswith(('son')): fname = fname + 'son'
+            elif nyme.endswith(('tytär')): fname = fname + 'tytär'
+            elif nyme.endswith(('dotter')): fname = fname + 'dotter'
+            fnyme = self.patronyme_normalizer.normalize(fname)
             # nfname = str(unicodedata.normalize('NFC', name.first_name.decode('utf8')))
             # print("    Nymes:" + str(nnyme) +  " - " + str(nfname))
             # Following algorithm is a crude preliminary one,  reference names should be used instead
             
-            if nnyme.startswith(nfname):
+            if pnyme == fnyme:
 #                print(f"{lang}  {nyme} = { nfname}")     
                 return True 
 #        print(f"{lang}  {nyme} <> { nfname}")      
@@ -141,14 +169,9 @@ class MarkBirthnameIssues(tool.BatchTool):
      
     def compareSurnames(self, pnames, surname):
         # Normalize stings before compare because of accented characters
-        nsurname = unicodedata.normalize('NFKD', surname).encode('ASCII','ignore')
-        nsurname = str(unicodedata.normalize('NFC', nsurname.decode('utf8')))
+        nsurname = self.last_normalizer.normalize(surname)
         for name in pnames:
-            npsurname = unicodedata.normalize('NFKD', str(name.get_surname())).encode('ASCII','ignore')
-            npsurname = str(unicodedata.normalize('NFC', npsurname.decode('utf8')))
-            # print("    " + str(nsurname) +  " - " + str(npsurname))
-            # if nsurname == str(unicodedata.normalize('NFC', name.get_surname.decode('utf8'))):
-#                print(f"{nsurname} =  {npsurname}")
+            npsurname = self.last_normalizer.normalize(str(name.get_surname()))
             if nsurname == npsurname:
                 return True
         print(f"{nsurname} <>  {npsurname}")    
@@ -156,12 +179,13 @@ class MarkBirthnameIssues(tool.BatchTool):
     
     def checkForIssues(self, person):
 #        fname = None
+
         bsurname = ''
         bnamecount = 0
         names = [person.get_primary_name()] + person.get_alternate_names()
         for pname in names:
             pid = person.gramps_id
-            surname = pname.get_surname()
+#            surname = pname.get_surname()
 #            print(f"{pid}  {surname}")
             if pname.type == NameType.BIRTH:
                 bnamecount += 1
@@ -173,7 +197,7 @@ class MarkBirthnameIssues(tool.BatchTool):
                 if bsurname == '':
                     if bpatronyme == "": 
                         # print("T    Both birth surname and patronyme/matronyme empty")
-                        self.addNoteToPerson('--BIRTHNAME: Both birth surname and patronyme/matronyme empty.', person)
+                        self.addNoteToPerson(NoteType.TODO, '--BNE001: Both birth surname and patronyme/matronyme empty.', person)
 
                 pFamilies = person.get_parent_family_handle_list()  # Possibly several parent families
                 if len(pFamilies) > 0:
@@ -192,7 +216,7 @@ class MarkBirthnameIssues(tool.BatchTool):
                             elif mnames and self.compareNymes(mnames, bpatronyme):
                                 continue
                             else:
-                                self.addNoteToPerson(f"--BIRTHNAME: Patronyme/matronyme {bpatronyme} does not agree with parents first name " , person)
+                                self.addNoteToPerson(NoteType.RESEARCH, f"--PNW001: Patronyme/matronyme {bpatronyme} does not agree with parents first name " , person)
                          
                         if bsurname:
                             if fnames and self.compareSurnames(fnames, bsurname):
@@ -200,13 +224,13 @@ class MarkBirthnameIssues(tool.BatchTool):
                             elif mnames and self.compareSurnames(mnames, bsurname):
                                 continue
                             else:   
-                                self.addNoteToPerson("--BIRTHNAME: Surname %s not same as parents surname " %  bsurname, person)
+                                self.addNoteToPerson(NoteType.RESEARCH, f"--SNW001: Surname {bsurname}  not same as parents surnames " , person)
 
 #       Other checks and operations            
             pfnames = pname.first_name.split() 
             if not pfnames:
                 # print("T    First name empty")
-                self.addNoteToPerson('--FIRSTNAME: First name empty, add one.', person)
+                self.addNoteToPerson(NoteType.TODO, '--FNE001: First name empty, add one.', person)
             else: 
 #                print(pfnames)
                 for fname in pfnames: 
@@ -220,23 +244,26 @@ class MarkBirthnameIssues(tool.BatchTool):
                 pass                     
  
         if bnamecount > 1:
-            self.addNoteToPerson(f"--BIRTHNAME: Person has {bnamecount} birthnames", person)
+            self.addNoteToPerson(NoteType.TODO, f"--BNE001: Person has {bnamecount} birthnames, define the right one", person)
         elif bnamecount ==  0:      
-            self.addNoteToPerson("--BIRTHNAME: No birthname found, define one.", person)                 
+            self.addNoteToPerson(NoteType.RESEARCH, "--BNW002: No birthname found, define one.", person)                 
         return     # Problem: no birthname found
 
             
     def run(self):
+        tag = self.checkTagExistence('Name issue accepted')
         with self.user.progress(
                 _("Checking for birthname issues"), '', self.db.get_number_of_people()) as step:
             for phandle in self.db.get_person_handles():
                 step()
-                self.checkForIssues(self.db.get_person_from_handle(phandle))  
+                person = self.db.get_person_from_handle(phandle)
+                ptags = person.get_tag_list()
+                if not tag in ptags:
+                    self.checkForIssues(self.db.get_person_from_handle(phandle))  
   
 #        self.db.enable_signals()
 #        self.db.request_rebuild() 
-               
-    
+
 #------------------------------------------------------------------------
 #
 # MarkBirthnameIssuesOptions

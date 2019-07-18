@@ -24,5 +24,6 @@ fname = 'markbirthnameissues.py',
 category = TOOL_DBPROC,
 toolclass = 'MarkBirthnameIssues',
 optionclass = 'MarkBirthnameIssuesOptions',
-tool_modes = [TOOL_MODE_GUI, TOOL_MODE_CLI]
+depends_on = ['name_normalizer'],
+tool_modes = [TOOL_MODE_GUI, TOOL_MODE_CLI],
 )
