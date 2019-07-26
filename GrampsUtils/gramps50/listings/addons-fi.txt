@@ -1,0 +1,1 @@
+{"t":'Tool',"i":'vakkalinkit',"n":'vakkalinkit',"v":'0.0.1',"g":'5.0',"d":'Hakee VAKKA-kannasta arkistoyksikköjen nimet',"z":'vakkalinkit.tar.gz'}
