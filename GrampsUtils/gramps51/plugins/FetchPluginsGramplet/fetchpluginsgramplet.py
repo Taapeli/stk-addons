@@ -48,39 +48,39 @@ from gi.repository import Gtk
 # GRAMPS modules
 #
 #------------------------------------------------------------------------
-from gramps.gen.relationship import get_relationship_calculator
-from gramps.gen.display.name import displayer as name_displayer
-from gramps.gen.plug import Gramplet
-from gramps.gui.dialog import OkDialog
-from gramps.gui.glade import Glade
-from gramps.gen.const import VERSION_DIR
-from gramps.gen.const import USER_PLUGINS
-from gramps.gui.display import display_url
+from gramps.version import VERSION_TUPLE
 
 from gramps.gen.const import GRAMPS_LOCALE as glocale
+from gramps.gen.const import USER_PLUGINS
+from gramps.gen.plug import Gramplet
+
+from gramps.gui.dialog import OkDialog
+from gramps.gui.display import display_url
+from gramps.gui.glade import Glade
+
 try:
     _trans = glocale.get_addon_translator(__file__)
 except ValueError:
     _trans = glocale.translation
 _ = _trans.gettext
 sgettext = _trans.sgettext
-print(dir(_trans))
 
 DEBUG = False
 
 github_user = "Taapeli"
 github_repo = "stk-addons"
+stk_plugin_dir = USER_PLUGINS + "/isotammi-addons"
+
+version_dir = "gramps%s%s" % (VERSION_TUPLE[0],VERSION_TUPLE[1])
 base_url = "https://api.github.com/repos/kkujansuu/gramps/contents/addons/"
-base_url = "https://api.github.com/repos/{github_user}/{github_repo}/contents/GrampsUtils/{version}/plugins/".format(
-    version=VERSION_DIR,
+base_url = "https://api.github.com/repos/{github_user}/{github_repo}/contents/GrampsUtils/{version_dir}/plugins/".format(
+    version_dir=version_dir,
     github_user=github_user,
     github_repo=github_repo)
-help_base_url = "https://github.com/{github_user}/{github_repo}/tree/master/GrampsUtils/{version}/plugins/".format(
-    version=VERSION_DIR,
+help_base_url = "https://github.com/{github_user}/{github_repo}/tree/master/GrampsUtils/{version_dir}/plugins/".format(
+    version_dir=version_dir,
     github_user=github_user,
     github_repo=github_repo)
-#plugin_dir = "/home/kari/.gramps/gramps51/plugins"
-stk_plugin_dir = USER_PLUGINS + "/stk-plugins"
 
 #------------------------------------------------------------------------
 #
@@ -118,24 +118,7 @@ class FetchPluginsGramplet(Gramplet):
     """
     """
     def __init__(self, *args):
-        self.selected_handles = None
-        self.relationship_calc = get_relationship_calculator()
-        self.person1 = None
-        self.person2 = None
-        self.person1_label = None
-        self.person2_label = None
-        self.notelink_xref1 = None
-        self.notelink_xref2 = None
-        self.assoc_xref1 = None
-        self.assoc_xref2 = None
-        self.cache = None
-        self.queue = None
-        self.use_events = None
-        self.use_notes = None
-        self.use_associations = None
-        self.running = False
         print("base_url:",base_url)
-        
         Gramplet.__init__(self, *args)
 
     def init(self):
@@ -327,4 +310,3 @@ class FetchPluginsGramplet(Gramplet):
         shutil.rmtree(plugin_dir)
         self.refresh_list()
         
-
